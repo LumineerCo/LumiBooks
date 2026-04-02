@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>LumiBooks</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:opsz,wght@9..40,400;9..40,500&display=swap" rel="stylesheet">
+<script src="js/api.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<link rel="stylesheet" href="cs/app_style.css">
+<style></style>
+</head>
+<body>
+<div class="app">
+<div class="sbb" id="sbb" onclick="closeSb()"></div>
+<aside class="sb" id="sb">
+  <div class="sb-logo"><div class="lrow"><div class="li">LB</div><div><div class="ln">LumiBooks</div><div class="lb">LumineerCo</div></div></div></div>
+  <nav class="sb-nav">
+    <div class="ns">Main</div>
+    <button class="ni on" data-pg="dashboard"    onclick="goto('dashboard')"><span class="ni-i">📊</span> Dashboard</button>
+    <button class="ni"    data-pg="transactions" onclick="goto('transactions')"><span class="ni-i">💳</span> Transactions</button>
+    <button class="ni"    data-pg="estimates"    onclick="goto('estimates')"><span class="ni-i">🧾</span> Bills & Estimates</button>
+    <div class="ns">Account</div>
+    <button class="ni"    data-pg="profile"   onclick="goto('profile')"><span class="ni-i">👤</span> Profile</button>
+    <button class="ni"    data-pg="upgrade"   onclick="goto('upgrade')"><span class="ni-i">⭐</span> Upgrade Plan</button>
+    <button class="ni"    onclick="doLogout()" style="margin-top:6px"><span class="ni-i">🚪</span> Sign Out</button>
+  </nav>
+  <div class="ps" id="planStrip"><div class="ps-n" id="planN">Free Plan</div><div class="ps-s" id="planS">20 bills/month</div><button class="btn-up" id="upgBtn" onclick="goto('upgrade')">⭐ Upgrade</button></div>
+</aside>
+<div class="main">
+  <header class="tb">
+    <button class="tb-menu" onclick="toggleSb()">☰</button>
+    <span class="tb-t" id="tbT">Dashboard</span>
+    <div class="tb-r">
+      <div class="sw"><span class="si-ic">🔍</span><input class="si" id="gS" placeholder="Search..." oninput="debSearch(this.value)" autocomplete="off"></div>
+      <div class="uc" onclick="goto('profile')"><div class="ua" id="uAv">?</div><span class="un" id="uNm">...</span></div>
+    </div>
+  </header>
+  <div class="cnt">
+    <!-- DASHBOARD -->
+    <div class="pg on" id="pg-dashboard">
+      <div class="sg">
+        <div class="sc g" ><div class="sc-l">Total Credit</div><div class="sc-v g"  id="ds-c">—</div></div>
+        <div class="sc r" ><div class="sc-l">Total Debit</div><div class="sc-v r"   id="ds-d">—</div></div>
+        <div class="sc gd"><div class="sc-l">Net Profit/Loss</div><div class="sc-v gd" id="ds-p">—</div></div>
+        <div class="sc b" ><div class="sc-l">This Month Net</div><div class="sc-v b"  id="ds-m">—</div></div>
+      </div>
+      <div class="cg">
+        <div class="cw"><div class="ct">Monthly Overview</div><canvas id="mC"></canvas></div>
+        <div class="cw"><div class="ct">By Category</div><canvas id="cC"></canvas></div>
+      </div>
+      <div class="sh no-print"><h2>Recent Transactions</h2><button class="btn btn-ghost btn-sm" onclick="goto('transactions')">View All →</button></div>
+      <div class="tw"><div class="ts"><table>
+        <thead><tr><th>Date</th><th>Type</th><th>Category</th><th>Amount</th><th>Description</th></tr></thead>
+        <tbody id="rTx"><tr><td colspan="5" style="text-align:center;color:var(--muted);padding:16px"><span class="spin"></span></td></tr></tbody>
+      </table></div></div>
+      <div class="lbar" id="lbar" style="display:none">
+        <div class="lbar-r"><span style="color:var(--muted)">Monthly Bills</span><span id="lbarT" style="font-weight:600"></span></div>
+        <div class="lbar-t"><div class="lbar-f" id="lbarF" style="width:0"></div></div>
+      </div>
+    </div>
+    <!-- TRANSACTIONS -->
+    <div class="pg" id="pg-transactions">
+      <div class="sh no-print"><h2>Transactions</h2><button class="btn btn-gold btn-sm" onclick="openTxMo()">+ Add Transaction</button></div>
+      <div class="tw">
+        <div class="ttb no-print">
+          <input class="fi" style="max-width:165px;margin:0" placeholder="Search..." id="txSrch" oninput="loadTx(1)">
+          <select class="fs" style="max-width:112px;margin:0" id="txType" onchange="loadTx(1)"><option value="">All Types</option><option>Credit</option><option>Debit</option></select>
+          <select class="fs" style="max-width:122px;margin:0" id="txCat" onchange="loadTx(1)"><option value="">All Categories</option><option>Sales</option><option>Purchase</option><option>Utility</option><option>Salary</option><option>Rent</option><option>Transport</option><option>Other</option></select>
+        </div>
+        <div class="ts"><table>
+          <thead><tr><th>Date</th><th>Type</th><th>Category</th><th>Amount</th><th>Description</th><th>Ref</th><th class="no-print">Actions</th></tr></thead>
+          <tbody id="txB"><tr><td colspan="7" style="text-align:center;color:var(--muted);padding:16px"><span class="spin"></span></td></tr></tbody>
+        </table></div>
+        <div class="pag"><div class="pi" id="txI"></div><div class="pbs" id="txP"></div></div>
+      </div>
+    </div>
+    <!-- ESTIMATES -->
+    <div class="pg" id="pg-estimates">
+      <div class="sh no-print"><h2>Bills & Estimates</h2><button class="btn btn-gold btn-sm" onclick="goto('billing')">+ New Bill</button></div>
+      <div class="tw">
+        <div class="ttb no-print"><input class="fi" style="max-width:225px;margin:0" placeholder="Search customer, bill no..." id="estSrch" oninput="loadEst(1)"></div>
+        <div class="ts"><table>
+          <thead><tr><th>Bill No.</th><th>Date</th><th>Customer</th><th>Amount</th><th>Status</th><th class="no-print">Actions</th></tr></thead>
+          <tbody id="estB"><tr><td colspan="6" style="text-align:center;color:var(--muted);padding:16px"><span class="spin"></span></td></tr></tbody>
+        </table></div>
+        <div class="pag"><div class="pi" id="estI"></div><div class="pbs" id="estP"></div></div>
+      </div>
+    </div>
+    <!-- BILLING -->
+    <div class="pg" id="pg-billing">
+      <div id="bCreate">
+        <div class="sh no-print"><h2>Create New Bill</h2><button class="btn btn-ghost btn-sm" onclick="goto('estimates')">← Back</button></div>
+        <div class="fp"><h3>Bill Details</h3><div class="fgrid"><div class="fg"><label class="fl">Date</label><input class="fi" id="bD" type="date"></div><div class="fg"><label class="fl">Due Date (optional)</label><input class="fi" id="bDu" type="date"></div></div></div>
+        <div class="fp"><h3>Customer</h3><div class="fgrid"><div class="fg"><label class="fl">Name *</label><input class="fi" id="cN" placeholder="Customer name"></div><div class="fg"><label class="fl">Phone (for WhatsApp)</label><input class="fi" id="cP" type="tel" placeholder="9876543210"></div><div class="fg" style="grid-column:1/-1"><label class="fl">Address</label><input class="fi" id="cA" placeholder="City, State"></div></div></div>
+        <div class="fp"><h3>Items</h3><div class="ts"><table class="it" id="itT"><thead><tr><th>Description</th><th width="62">Qty</th><th width="100">Unit Price</th><th width="90">Amount</th><th width="30"></th></tr></thead><tbody id="itB"></tbody></table></div><button class="btn btn-ghost btn-sm" onclick="addItem()">+ Add Row</button></div>
+        <div class="fp"><h3>Totals</h3><div class="fgrid" style="max-width:440px;margin-left:auto"><div class="fg"><label class="fl">Discount (₹)</label><input class="fi" id="bDis" type="number" value="0" min="0" oninput="calcTot()"></div><div class="fg"><label class="fl">Tax (%)</label><input class="fi" id="bTx" type="number" value="0" min="0" max="100" oninput="calcTot()"></div><div class="fg"><label class="fl">Total</label><input class="fi" id="bTot" readonly style="font-weight:700;color:var(--gold)"></div></div></div>
+        <div class="fp"><div class="fg" style="margin:0"><label class="fl">Notes (optional)</label><textarea class="fta" id="bNo" placeholder="Payment terms, thank you note..."></textarea></div></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap" class="no-print"><button class="btn btn-gold" onclick="saveBill()">💾 Save Bill</button><button class="btn btn-ghost" onclick="goto('estimates')">Cancel</button></div>
+      </div>
+      <div id="bView" style="display:none">
+        <div class="sh no-print">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><button class="btn btn-ghost btn-sm" onclick="goto('estimates')">← Bills</button><h2 id="vBid">Bill #</h2></div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <button class="btn btn-ghost btn-sm" onclick="window.print()">🖨️ Print</button>
+            <button class="btn btn-ghost btn-sm" id="pdfBtn" onclick="expBill('pdf')">📄 PDF</button>
+            <button class="btn btn-ghost btn-sm" id="docBtn" onclick="expBill('doc')">📝 DOC</button>
+            <button class="btn btn-green  btn-sm" id="waBtn"  onclick="shareWA()">💬 WhatsApp</button>
+          </div>
+        </div>
+        <div class="bpw" id="bPrev"></div>
+      </div>
+    </div>
+    <!-- PROFILE -->
+    <div class="pg" id="pg-profile">
+      <div style="max-width:560px">
+        <div class="sh"><h2>Profile & Settings</h2></div>
+        <div id="profA"></div>
+        <div class="fp"><h3>Personal Info</h3><div class="fgrid"><div class="fg"><label class="fl">Full Name</label><input class="fi" id="pN"></div><div class="fg"><label class="fl">Phone</label><input class="fi" id="pPh" type="tel"></div><div class="fg" style="grid-column:1/-1"><label class="fl">Email (cannot change)</label><input class="fi" id="pEm" readonly style="opacity:.44"></div></div></div>
+        <div class="fp"><h3>Business Details</h3><div class="fgrid"><div class="fg"><label class="fl">Business Name</label><input class="fi" id="bN"></div><div class="fg"><label class="fl">Business Phone</label><input class="fi" id="bPh"></div><div class="fg"><label class="fl">Business Email</label><input class="fi" id="bEm" type="email"></div><div class="fg"><label class="fl">Currency Symbol</label><input class="fi" id="bCr" placeholder="₹"></div><div class="fg" style="grid-column:1/-1"><label class="fl">Business Address</label><textarea class="fta" id="bAd"></textarea></div></div></div>
+        <div class="fp"><h3>Change Password</h3><div class="fgrid"><div class="fg"><label class="fl">Current Password</label><input class="fi" id="oP" type="password"></div><div class="fg"><label class="fl">New Password</label><input class="fi" id="nP" type="password"></div></div><button class="btn btn-ghost btn-sm" style="margin-top:4px" onclick="doChgPw()">Update Password</button></div>
+        <button class="btn btn-gold" onclick="saveProf()">💾 Save Profile</button>
+      </div>
+    </div>
+    <!-- UPGRADE -->
+    <div class="pg" id="pg-upgrade">
+      <div style="max-width:540px">
+        <div class="sh"><h2>Upgrade Plan</h2></div>
+        <div id="upgA"></div>
+        <div class="p-row">
+          <div class="p-opt sel" id="opt-standard" onclick="selPlan('standard')"><div class="pn">Standard</div><div class="pp">₹149</div><div class="pd">150 bills·DOC·WhatsApp</div></div>
+          <div class="p-opt" id="opt-premium" onclick="selPlan('premium')"><div class="pn">Premium ⭐</div><div class="pp">₹299</div><div class="pd">Unlimited·PDF+DOC·WA</div></div>
+        </div>
+        <div class="fp"><h3>Pay via UPI</h3>
+          <div style="background:var(--s2);border:1px solid var(--s3);border-radius:8px;padding:12px;margin-bottom:12px">
+            <div style="font-size:.66rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">UPI ID</div>
+            <div style="font-family:'Syne',sans-serif;font-size:1.02rem;font-weight:700;color:var(--gold)" id="upiTxt">—</div>
+            <div style="font-size:.75rem;color:var(--muted);margin-top:4px" id="upiAmt">Send amount with your email as remark.</div>
+          </div>
+          <div class="fg"><label class="fl">Plan</label><select class="fs" id="selPlanDrop" onchange="updUpiAmt()"><option value="standard">Standard — ₹149/month</option><option value="premium">Premium — ₹299/month</option></select></div>
+          <div class="fg"><label class="fl">UTR / Transaction Reference *</label><input class="fi" id="utrR" placeholder="12-digit UTR from your UPI app"></div>
+          <button class="btn btn-gold btn-full" style="margin-top:4px" onclick="submitUpg()">Submit for Verification →</button>
+        </div>
+        <p style="font-size:.76rem;color:var(--muted);text-align:center">Admin verifies within 24 hours. Log out and back in after approval.</p>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+<!-- TX MODAL -->
+<div class="mo" id="txMo"><div class="mb">
+  <div class="mt" id="txMoT">Add Transaction</div>
+  <div id="txA"></div>
+  <div class="fgrid">
+    <div class="fg"><label class="fl">Date</label><input class="fi" id="txD" type="date"></div>
+    <div class="fg"><label class="fl">Type</label><select class="fs" id="txT"><option value="Credit">Credit (Income)</option><option value="Debit">Debit (Expense)</option></select></div>
+    <div class="fg"><label class="fl">Category</label><select class="fs" id="txC"><option>Sales</option><option>Purchase</option><option>Utility</option><option>Salary</option><option>Rent</option><option>Transport</option><option>Other</option></select></div>
+    <div class="fg"><label class="fl">Amount (₹) *</label><input class="fi" id="txAm" type="number" min="0.01" step="0.01" placeholder="0.00"></div>
+    <div class="fg" style="grid-column:1/-1"><label class="fl">Description</label><input class="fi" id="txDe" placeholder="Brief description"></div>
+    <div class="fg" style="grid-column:1/-1"><label class="fl">Reference No.</label><input class="fi" id="txRe" placeholder="Invoice / receipt no."></div>
+  </div>
+  <div class="mf"><button class="btn btn-ghost" onclick="closeTxMo()">Cancel</button><button class="btn btn-gold" id="txSv" onclick="saveTx()">Save</button></div>
+</div></div>
+<!-- SEARCH MODAL -->
+<div class="mo" id="srchMo"><div class="mb" style="max-width:520px">
+  <div class="mt">Search Results</div><div id="srchR"></div>
+  <div class="mf"><button class="btn btn-ghost" onclick="document.getElementById('srchMo').classList.remove('on')">Close</button></div>
+</div></div>
+<script>
+if(!LB.session.active())location.href="index.html";
+let CURR="₹",curPg="dashboard",txPg=1,estPg=1,editTx=null,vBillId=null,srchTmr=null,mCI=null,cCI=null;
+(function(){
+  document.getElementById("uNm").textContent=LB.session.name();
+  document.getElementById("uAv").textContent=LB.session.name().charAt(0).toUpperCase();
+  updatePlanUI(LB.session.plan());
+  const h=location.hash.replace("#","")||"dashboard";
+  goto(["dashboard","transactions","estimates","billing","profile","upgrade"].includes(h)?h:"dashboard",true);
+  setTd();
+})();
+const fmt=(n,c)=>(c||CURR)+parseFloat(n||0).toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2});
+function updatePlanUI(plan){
+  const L={free:"Free Plan",standard:"Standard Plan",premium:"Premium Plan"},S={free:"20 bills/month",standard:"150 bills/month",premium:"Unlimited bills"};
+  document.getElementById("planN").textContent=L[plan]||"Free Plan";document.getElementById("planS").textContent=S[plan]||"";
+  const ub=document.getElementById("upgBtn");
+  if(plan==="premium")ub.style.display="none";else{ub.style.display="block";ub.textContent=plan==="standard"?"🚀 Go Premium":"⭐ Upgrade";}
+  localStorage.setItem("lb_plan",plan);
+}
+function goto(pg,init){
+  curPg=pg;
+  document.querySelectorAll(".pg").forEach(s=>s.classList.remove("on"));
+  document.querySelectorAll(".ni[data-pg]").forEach(n=>n.classList.remove("on"));
+  const el=document.getElementById("pg-"+pg);if(el)el.classList.add("on");
+  const ni=document.querySelector(`.ni[data-pg="${pg}"]`);if(ni)ni.classList.add("on");
+  const T={dashboard:"Dashboard",transactions:"Transactions",estimates:"Bills & Estimates",billing:"Create Bill",profile:"Profile & Settings",upgrade:"Upgrade Plan"};
+  document.getElementById("tbT").textContent=T[pg]||"LumiBooks";
+  if(!init)location.hash=pg;
+  closeSb();
+  if(pg==="dashboard")loadDash();
+  if(pg==="transactions")loadTx(1);
+  if(pg==="estimates")loadEst(1);
+  if(pg==="profile")loadProf();
+  if(pg==="upgrade")loadUpg();
+  if(pg==="billing"){document.getElementById("bCreate").style.display="block";document.getElementById("bView").style.display="none";initBF();}
+}
+function toggleSb(){document.getElementById("sb").classList.toggle("open");document.getElementById("sbb").classList.toggle("on");}
+function closeSb(){document.getElementById("sb").classList.remove("open");document.getElementById("sbb").classList.remove("on");}
+async function loadDash(){
+  const d=await LB.tx.dashboard();if(!d||!d.ok)return;
+  CURR=d.currency||"₹";
+  document.getElementById("ds-c").textContent=fmt(d.totalCredit);document.getElementById("ds-d").textContent=fmt(d.totalDebit);
+  const pp=document.getElementById("ds-p");pp.textContent=fmt(d.netProfit);pp.style.color=d.netProfit>=0?"var(--green)":"var(--red)";
+  document.getElementById("ds-m").textContent=fmt(d.monthCredit-d.monthDebit);
+  if(d.billLimit>0){document.getElementById("lbar").style.display="block";document.getElementById("lbarT").textContent=`${d.billsThisMonth}/${d.billLimit}`;document.getElementById("lbarF").style.width=Math.min(100,(d.billsThisMonth/d.billLimit)*100)+"%";}
+  const tb=document.getElementById("rTx");
+  tb.innerHTML=(d.recent||[]).length?(d.recent).map(r=>`<tr><td>${r.date}</td><td><span class="bg ${r.type.toLowerCase()}">${r.type}</span></td><td>${r.category}</td><td style="font-weight:600;color:${r.type==="Credit"?"var(--green)":"var(--red)"}">${fmt(r.amount)}</td><td style="color:var(--muted)">${r.desc||"—"}</td></tr>`).join(""):`<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:16px">No transactions yet.</td></tr>`;
+  rMC(d.monthChart||{});rCC(d.catChart||{});
+}
+function rMC(data){const m=Object.keys(data).sort().slice(-6);if(mCI)mCI.destroy();if(!m.length)return;mCI=new Chart(document.getElementById("mC"),{type:"bar",data:{labels:m,datasets:[{label:"Credit",data:m.map(k=>data[k]?.credit||0),backgroundColor:"rgba(34,197,94,.55)",borderRadius:4},{label:"Debit",data:m.map(k=>data[k]?.debit||0),backgroundColor:"rgba(239,68,68,.55)",borderRadius:4}]},options:{responsive:true,plugins:{legend:{labels:{color:"#6b7280",font:{size:10}}}},scales:{x:{ticks:{color:"#6b7280"},grid:{color:"#1e2433"}},y:{ticks:{color:"#6b7280"},grid:{color:"#1e2433"}}}}});}
+function rCC(data){const c=Object.keys(data).slice(0,8);if(cCI)cCI.destroy();if(!c.length)return;cCI=new Chart(document.getElementById("cC"),{type:"doughnut",data:{labels:c,datasets:[{data:c.map(k=>data[k]),backgroundColor:["#c8a96e","#22c55e","#ef4444","#3b82f6","#a855f7","#f59e0b","#06b6d4","#84cc16"],borderWidth:0}]},options:{responsive:true,plugins:{legend:{position:"bottom",labels:{color:"#6b7280",font:{size:10}}}}}});}
+async function loadTx(pg){
+  txPg=pg||1;
+  document.getElementById("txB").innerHTML=`<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:16px"><span class="spin"></span></td></tr>`;
+  const d=await LB.tx.list({page:txPg,size:20,search:document.getElementById("txSrch").value||"",type:document.getElementById("txType").value||"",cat:document.getElementById("txCat").value||""});
+  if(!d||!d.ok)return;
+  const tb=document.getElementById("txB");
+  if(!d.rows.length){tb.innerHTML=`<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:16px">No transactions found.</td></tr>`;return;}
+  tb.innerHTML=d.rows.map(r=>`<tr><td style="white-space:nowrap">${r.date}</td><td><span class="bg ${r.type.toLowerCase()}">${r.type}</span></td><td>${r.category}</td><td style="font-weight:600;color:${r.type==="Credit"?"var(--green)":"var(--red)"}">${fmt(r.amount)}</td><td style="color:var(--muted)">${r.desc||"—"}</td><td style="color:var(--muted);font-size:.76rem">${r.ref||"—"}</td><td class="no-print" style="white-space:nowrap"><button class="btn btn-ghost btn-sm" onclick='openTxMo(${JSON.stringify(r)})'>✏️</button><button class="btn btn-danger btn-sm" onclick="delTx(${r.idx},'${(r.desc||"tx").replace(/'/g,"\\'")}')">🗑️</button></td></tr>`).join("");
+  document.getElementById("txI").textContent=`${d.total} results`;
+  renderPag("txP",d.page,d.totalPages,loadTx);
+}
+function openTxMo(tx){
+  editTx=tx||null;
+  document.getElementById("txMoT").textContent=tx?"Edit Transaction":"Add Transaction";
+  document.getElementById("txD").value=tx?tx.date:new Date().toISOString().slice(0,10);
+  document.getElementById("txT").value=tx?tx.type:"Credit";
+  document.getElementById("txC").value=tx?tx.category:"Sales";
+  document.getElementById("txAm").value=tx?tx.amount:"";
+  document.getElementById("txDe").value=tx?tx.desc:"";
+  document.getElementById("txRe").value=tx?tx.ref:"";
+  document.getElementById("txA").innerHTML="";
+  document.getElementById("txMo").classList.add("on");
+  const sv=document.getElementById("txSv");sv.disabled=false;sv.textContent="Save";
+}
+function closeTxMo(){document.getElementById("txMo").classList.remove("on");}
+async function saveTx(){
+  const data={date:document.getElementById("txD").value,type:document.getElementById("txT").value,category:document.getElementById("txC").value,amount:document.getElementById("txAm").value,description:document.getElementById("txDe").value,reference_no:document.getElementById("txRe").value};
+  if(!data.amount){setA("txA","Amount is required.","e");return;}
+  const sv=document.getElementById("txSv");sv.disabled=true;sv.innerHTML='<span class="spin d"></span> Saving...';
+  const d=editTx?await LB.tx.update(editTx.idx,data):await LB.tx.add(data);
+  sv.disabled=false;sv.textContent="Save";
+  if(!d||!d.ok){setA("txA",d?.msg||"Error","e");if(d?.limit)setTimeout(()=>goto("upgrade"),2000);return;}
+  closeTxMo();loadTx(txPg);if(curPg==="dashboard")loadDash();
+}
+async function delTx(idx,desc){if(!confirm(`Delete "${desc}"?`))return;const d=await LB.tx.del(idx);if(d?.ok)loadTx(txPg);}
+async function loadEst(pg){
+  estPg=pg||1;
+  document.getElementById("estB").innerHTML=`<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:16px"><span class="spin"></span></td></tr>`;
+  const d=await LB.est.list({page:estPg,size:15,search:document.getElementById("estSrch").value||""});
+  if(!d||!d.ok)return;
+  const tb=document.getElementById("estB");
+  if(!d.rows.length){tb.innerHTML=`<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:16px">No bills yet. <a href="#" onclick="goto('billing')" style="color:var(--gold)">Create first →</a></td></tr>`;return;}
+  tb.innerHTML=d.rows.map(r=>`<tr><td style="font-weight:600;color:var(--gold);font-size:.79rem">${r.billId}</td><td style="white-space:nowrap">${r.date}</td><td>${r.custName||"—"}</td><td style="font-weight:600">${fmt(r.total)}</td><td><span class="bg ${r.status}">${r.status}</span></td><td class="no-print" style="white-space:nowrap"><button class="btn btn-ghost btn-sm" onclick="viewBill('${r.billId}')">👁️</button><button class="btn btn-danger btn-sm" onclick="delEst('${r.billId}')">🗑️</button></td></tr>`).join("");
+  document.getElementById("estI").textContent=`${d.total} bills`;
+  renderPag("estP",d.page,d.totalPages,loadEst);
+}
+async function delEst(id){if(!confirm("Delete this bill?"))return;const d=await LB.est.del(id);if(d?.ok)loadEst(estPg);}
+function initBF(){["cN","cP","cA","bNo"].forEach(id=>document.getElementById(id).value="");document.getElementById("itB").innerHTML="";document.getElementById("bDis").value="0";document.getElementById("bTx").value="0";document.getElementById("bTot").value="";addItem();addItem();setTd();}
+function addItem(){const tr=document.createElement("tr");tr.innerHTML=`<td><input placeholder="Item description" oninput="calcTot()"></td><td><input type="number" value="1" min="1" oninput="calcTot()"></td><td><input type="number" value="0" min="0" step="0.01" oninput="calcTot()"></td><td><input readonly style="color:var(--gold)"></td><td><button class="di" onclick="this.closest('tr').remove();calcTot()">✕</button></td>`;document.getElementById("itB").appendChild(tr);}
+function calcTot(){let s=0;document.querySelectorAll("#itB tr").forEach(r=>{const i=r.querySelectorAll("input"),q=parseFloat(i[1].value)||0,p=parseFloat(i[2].value)||0,a=+(q*p).toFixed(2);i[3].value=a>0?CURR+a:"";s+=a;});const d=parseFloat(document.getElementById("bDis").value)||0,t=parseFloat(document.getElementById("bTx").value)||0,tot=+(((s-d)*(1+t/100)).toFixed(2));document.getElementById("bTot").value=tot>0?fmt(tot):"";}
+async function saveBill(){
+  const rows=document.querySelectorAll("#itB tr"),items=[];
+  rows.forEach(r=>{const i=r.querySelectorAll("input"),desc=i[0].value.trim(),qty=parseFloat(i[1].value)||0,price=parseFloat(i[2].value)||0;if(desc&&qty>0)items.push({desc,qty,price});});
+  if(!items.length){alert("Add at least one item.");return;}
+  const d=await LB.est.save({date:document.getElementById("bD").value,due_date:document.getElementById("bDu").value,cust_name:document.getElementById("cN").value,cust_phone:document.getElementById("cP").value,cust_addr:document.getElementById("cA").value,items,discount:parseFloat(document.getElementById("bDis").value)||0,tax:parseFloat(document.getElementById("bTx").value)||0,notes:document.getElementById("bNo").value});
+  if(!d||!d.ok){alert(d?.msg||"Failed.");if(d?.limit)setTimeout(()=>goto("upgrade"),2000);return;}
+  viewBill(d.billId);
+}
+async function viewBill(billId){
+  vBillId=billId;
+  if(curPg!=="billing")goto("billing");
+  document.getElementById("bCreate").style.display="none";document.getElementById("bView").style.display="block";
+  document.getElementById("vBid").textContent="Bill #"+billId;
+  document.getElementById("bPrev").innerHTML=`<p style="color:var(--muted);padding:18px;text-align:center"><span class="spin"></span> Loading...</p>`;
+  const d=await LB.est.get(billId);
+  if(!d||!d.ok){document.getElementById("bPrev").textContent=d?.msg||"Error";return;}
+  const biz=d.biz||{};CURR=biz.currency||"₹";
+  const its=(d.items||[]).map((it,i)=>`<tr><td>${i+1}</td><td>${it.desc}</td><td style="text-align:right">${it.qty}</td><td style="text-align:right">${fmt(it.price)}</td><td style="text-align:right">${fmt(it.amount)}</td></tr>`).join("");
+  document.getElementById("bPrev").innerHTML=`<div class="bh"><div><div class="biz-n">${biz.business_name||"My Business"}</div><div class="biz-i">${[biz.business_address,biz.business_phone?"Ph:"+biz.business_phone:null,biz.business_email].filter(Boolean).join(" · ")}</div></div><div class="bid-b"><div class="bid">${d.billId}</div><div class="bm">Date: ${d.date}</div>${d.due_date?`<div class="bm">Due: ${d.due_date}</div>`:""}</div></div>${d.cust_name?`<div style="margin-bottom:14px"><div class="btl">Billed To</div><div class="btn-n">${d.cust_name}</div><div class="biz-i">${[d.cust_phone,d.cust_addr].filter(Boolean).join(" · ")}</div></div>`:""}<table class="bit"><thead><tr><th>#</th><th>Description</th><th style="text-align:right">Qty</th><th style="text-align:right">Unit Price</th><th style="text-align:right">Amount</th></tr></thead><tbody>${its}</tbody></table><div class="btot"><div class="btr"><span>Subtotal</span><span>${fmt(d.subtotal)}</span></div>${d.discount>0?`<div class="btr"><span>Discount</span><span>-${fmt(d.discount)}</span></div>`:""}${d.tax>0?`<div class="btr"><span>Tax</span><span>${fmt(d.tax)}</span></div>`:""}<div class="btr fin"><span>TOTAL</span><span>${fmt(d.total)}</span></div></div>${d.notes?`<div class="bnotes">📝 ${d.notes}</div>`:""}<div class="bf">Thank you · Powered by LumiBooks — LumineerCo</div>`;
+  const cPDF=LB.plans.canPDF(),cDOC=LB.plans.canDOC(),cWA=LB.plans.canWhatsApp();
+  document.getElementById("pdfBtn").style.opacity=cPDF?"1":".4";document.getElementById("pdfBtn").title=cPDF?"Download PDF":"PDF requires Premium";
+  document.getElementById("docBtn").style.opacity=cDOC?"1":".4";document.getElementById("docBtn").title=cDOC?"Download DOC":"DOC requires Standard+";
+  document.getElementById("waBtn").style.opacity=cWA?"1":".4";document.getElementById("waBtn").title=cWA?"Share on WhatsApp":"WhatsApp requires Standard+";
+}
+async function expBill(type){
+  if(type==="pdf"&&!LB.plans.canPDF()){alert("PDF requires Premium plan.");goto("upgrade");return;}
+  if(type==="doc"&&!LB.plans.canDOC()){alert("DOC requires Standard or Premium.");goto("upgrade");return;}
+  const d=type==="pdf"?await LB.exp.pdf(vBillId):await LB.exp.doc(vBillId);
+  if(!d||!d.ok){alert(d?.msg||"Export failed.");if(d?.upgrade)goto("upgrade");return;}
+  const blob=new Blob([Uint8Array.from(atob(d.base64),c=>c.charCodeAt(0))],{type:type==="pdf"?"application/pdf":"application/vnd.openxmlformats-officedocument.wordprocessingml.document"});
+  const url=URL.createObjectURL(blob);Object.assign(document.createElement("a"),{href:url,download:`${vBillId}.${type==="doc"?"docx":"pdf"}`}).click();setTimeout(()=>URL.revokeObjectURL(url),2000);
+}
+async function shareWA(){
+  if(!LB.plans.canWhatsApp()){alert("WhatsApp requires Standard or Premium.");goto("upgrade");return;}
+  const d=await LB.est.whatsapp(vBillId);if(!d||!d.ok){alert(d?.msg||"Error");return;}
+  window.open("https://wa.me/"+(d.phone?"91"+d.phone.replace(/\D/g,""):"")+"?text="+encodeURIComponent(d.message),"_blank");
+}
+async function loadProf(){
+  const d=await LB.auth.profile();if(!d||!d.ok)return;
+  document.getElementById("pN").value=d.name||"";document.getElementById("pPh").value=d.phone||"";document.getElementById("pEm").value=d.email||"";
+  const b=d.biz||{};document.getElementById("bN").value=b.business_name||"";document.getElementById("bPh").value=b.business_phone||"";document.getElementById("bEm").value=b.business_email||"";document.getElementById("bCr").value=b.currency||"₹";document.getElementById("bAd").value=b.business_address||"";
+  CURR=b.currency||"₹";updatePlanUI(d.plan);
+}
+async function saveProf(){
+  const data={name:document.getElementById("pN").value,phone:document.getElementById("pPh").value,biz:{business_name:document.getElementById("bN").value,business_phone:document.getElementById("bPh").value,business_email:document.getElementById("bEm").value,currency:document.getElementById("bCr").value||"₹",business_address:document.getElementById("bAd").value}};
+  const d=await LB.auth.updateProfile(data);showPA(d?.msg||"Error",d?.ok?"s":"e");
+  if(d?.ok){localStorage.setItem("lb_name",data.name);document.getElementById("uNm").textContent=data.name;CURR=data.biz.currency||"₹";}
+}
+async function doChgPw(){const d=await LB.auth.changePassword(document.getElementById("oP").value,document.getElementById("nP").value);showPA(d?.msg||"Error",d?.ok?"s":"e");if(d?.ok){document.getElementById("oP").value="";document.getElementById("nP").value="";}}
+function showPA(m,t){const el=document.getElementById("profA");el.innerHTML=`<div class="alrt ${t}">${m}</div>`;setTimeout(()=>el.innerHTML="",4000);}
+async function loadUpg(){
+  const d=await LB.admin.payInfo();if(d?.ok)document.getElementById("upiTxt").textContent=d.upiId||"—";
+  if(LB.session.plan()!=="free")document.getElementById("upgA").innerHTML=`<div class="alrt s">You are on <strong>${LB.plans.label()} Plan</strong>.</div>`;
+  updUpiAmt();
+}
+let selPlanV="standard";
+function selPlan(p){selPlanV=p;document.querySelectorAll(".p-opt").forEach(o=>o.classList.remove("sel"));document.getElementById("opt-"+p).classList.add("sel");document.getElementById("selPlanDrop").value=p;updUpiAmt();}
+function updUpiAmt(){const p=document.getElementById("selPlanDrop").value||selPlanV;document.getElementById("upiAmt").textContent=`Send ₹${p==="premium"?299:149} with your registered email as UPI remark.`;}
+async function submitUpg(){
+  const plan=document.getElementById("selPlanDrop").value||selPlanV,utr=document.getElementById("utrR").value.trim();
+  if(!utr){setA("upgA","UTR reference is required.","e");return;}
+  const d=await LB.admin.submitPay({amount:plan==="premium"?299:149,utr_ref:utr,plan});
+  setA("upgA",d?.msg||"Error",d?.ok?"s":"e");if(d?.ok)document.getElementById("utrR").value="";
+}
+function debSearch(v){
+  clearTimeout(srchTmr);if(v.length<2)return;
+  srchTmr=setTimeout(async()=>{
+    const d=await LB.tx.search(v);if(!d||!d.ok||!d.results.length)return;
+    const html=d.results.map(r=>r.type==="transaction"?`<div style="padding:8px;border-bottom:1px solid var(--s3)"><span class="bg ${r.txType.toLowerCase()}">${r.txType}</span> <strong>${r.category}</strong> ${fmt(r.amount)} <span style="color:var(--muted)">${r.desc||""}</span></div>`:`<div style="padding:8px;border-bottom:1px solid var(--s3);cursor:pointer" onclick="viewBill('${r.billId}');document.getElementById('srchMo').classList.remove('on')"><strong style="color:var(--gold)">${r.billId}</strong> — ${r.customer||"—"} — ${fmt(r.total)}</div>`).join("");
+    document.getElementById("srchR").innerHTML=html;document.getElementById("srchMo").classList.add("on");
+  },400);
+}
+async function doLogout(){if(!confirm("Sign out?"))return;await LB.auth.logout();LB.session.clear();location.href="index.html";}
+function setA(id,m,t){const el=document.getElementById(id);if(!el)return;el.innerHTML=`<div class="alrt ${t}">${m}</div>`;}
+function setTd(){const t=new Date().toISOString().slice(0,10);["bD","txD"].forEach(id=>{const el=document.getElementById(id);if(el&&!el.value)el.value=t;});}
+function renderPag(cid,cur,total,cb){
+  const c=document.getElementById(cid);if(!c)return;
+  let h=`<button class="pb" onclick="${cb.name}(${cur-1})" ${cur<=1?"disabled":""}>‹</button>`;
+  for(let i=1;i<=total;i++){if(total>7&&i>2&&i<total-1&&Math.abs(i-cur)>1){if(i===3||i===total-2)h+=`<span style="color:var(--muted);padding:0 3px">…</span>`;continue;}h+=`<button class="pb ${i===cur?"on":""}" onclick="${cb.name}(${i})">${i}</button>`;}
+  h+=`<button class="pb" onclick="${cb.name}(${cur+1})" ${cur>=total?"disabled":""}>›</button>`;c.innerHTML=h;
+}
+</script>
+</body>
+</html>
