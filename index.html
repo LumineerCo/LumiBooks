@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LumiBooks — Smart Business Management | LumineerCo</title>
+<meta name="description" content="Track transactions, create professional bills, share via WhatsApp. Free to start.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:opsz,wght@9..40,400;9..40,500&display=swap" rel="stylesheet">
+<script src="js/api.js"></script>
+<style>
+:root{--bg:#0a0c10;--s1:#111318;--s2:#181c24;--s3:#1e2433;--gold:#c8a96e;--gold2:#e8c98e;--text:#e8eaf0;--muted:#6b7280;--green:#22c55e;--red:#ef4444;--r:10px}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden}
+h1,h2,h3{font-family:'Syne',sans-serif}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:13px 5%;border-bottom:1px solid rgba(200,169,110,.08);backdrop-filter:blur(16px);background:rgba(10,12,16,.88)}
+.logo{display:flex;align-items:center;gap:9px;text-decoration:none}
+.li{width:34px;height:34px;background:linear-gradient(135deg,var(--gold),var(--gold2));border-radius:8px;display:grid;place-items:center;font-family:'Syne',sans-serif;font-weight:800;color:#0a0c10;font-size:12px;flex-shrink:0}
+.ln{font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;line-height:1.1}
+.lb{font-size:.56rem;color:var(--gold);letter-spacing:.1em;text-transform:uppercase}
+.nav-r{display:flex;align-items:center;gap:8px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:5px;padding:9px 18px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.88rem;font-weight:500;cursor:pointer;border:none;transition:all .2s;white-space:nowrap;text-decoration:none}
+.btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--s3)}
+.btn-ghost:hover{color:var(--text);border-color:var(--gold)}
+.btn-gold{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#0a0c10;font-weight:700}
+.btn-gold:hover{opacity:.9;transform:translateY(-1px);box-shadow:0 4px 16px rgba(200,169,110,.3)}
+.btn-full{width:100%}
+
+/* HERO */
+.hero{min-height:100svh;display:flex;align-items:center;justify-content:center;text-align:center;padding:100px 5% 56px;position:relative;z-index:1}
+.glow{position:absolute;top:35%;left:50%;transform:translate(-50%,-50%);width:min(660px,130vw);height:min(660px,130vw);background:radial-gradient(circle,rgba(200,169,110,.055) 0%,transparent 68%);pointer-events:none}
+.badge{display:inline-flex;align-items:center;gap:7px;background:rgba(200,169,110,.08);border:1px solid rgba(200,169,110,.2);border-radius:100px;padding:5px 14px;font-size:.76rem;color:var(--gold);margin-bottom:20px;letter-spacing:.04em}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--gold);animation:p 2s infinite}
+@keyframes p{0%,100%{opacity:1}50%{opacity:.3}}
+h1{font-size:clamp(2.2rem,6vw,4.6rem);font-weight:800;line-height:1.08;letter-spacing:-.025em;margin-bottom:16px}
+h1 span{background:linear-gradient(135deg,var(--gold),var(--gold2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hsub{font-size:clamp(.93rem,1.7vw,1.1rem);color:var(--muted);max-width:540px;margin:0 auto 32px;line-height:1.75}
+.ctas{display:flex;gap:11px;justify-content:center;flex-wrap:wrap;margin-bottom:44px}
+.stats{display:flex;gap:clamp(18px,4vw,44px);justify-content:center;flex-wrap:wrap}
+.stat .n{font-family:'Syne',sans-serif;font-size:clamp(1.4rem,2.5vw,2rem);font-weight:800;color:var(--gold)}
+.stat .l{font-size:.7rem;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+
+/* SECTIONS */
+.sec{padding:clamp(44px,8vw,80px) 5%;max-width:1200px;margin:0 auto;position:relative;z-index:1}
+.sec-lbl{font-size:.7rem;color:var(--gold);letter-spacing:.1em;text-transform:uppercase;margin-bottom:9px}
+.sec-t{font-size:clamp(1.6rem,3.5vw,2.5rem);font-weight:700;margin-bottom:12px;line-height:1.2}
+.sec-s{color:var(--muted);font-size:.92rem;max-width:480px;line-height:1.75;margin-bottom:44px}
+.g3{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px}
+.card{background:var(--s1);border:1px solid var(--s3);border-radius:var(--r);padding:24px;transition:all .3s}
+.card:hover{border-color:rgba(200,169,110,.25);transform:translateY(-3px);box-shadow:0 8px 28px rgba(0,0,0,.4)}
+.ci{width:42px;height:42px;background:rgba(200,169,110,.08);border-radius:9px;display:grid;place-items:center;margin-bottom:14px;font-size:1.2rem}
+.card h3{font-size:.97rem;font-weight:600;margin-bottom:7px}
+.card p{font-size:.86rem;color:var(--muted);line-height:1.65}
+
+/* PRICING */
+.plans-wrap{background:var(--s1);border-top:1px solid var(--s3);border-bottom:1px solid var(--s3);padding:clamp(44px,7vw,80px) 5%}
+.plans-inner{max-width:960px;margin:0 auto;text-align:center}
+.plans-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;text-align:left}
+.plan{background:var(--s2);border:1px solid var(--s3);border-radius:14px;padding:26px;position:relative}
+.plan.feat{border-color:var(--gold);background:linear-gradient(160deg,rgba(200,169,110,.07),var(--s2))}
+.ptag{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--gold);color:#0a0c10;font-size:.68rem;font-weight:800;padding:3px 13px;border-radius:100px;white-space:nowrap}
+.pname{font-family:'Syne',sans-serif;font-size:.97rem;font-weight:700;margin-bottom:5px}
+.pprice{font-family:'Syne',sans-serif;font-size:2.2rem;font-weight:800;color:var(--gold);line-height:1}
+.pprice sup{font-size:.9rem}.pprice sub{font-size:.78rem;color:var(--muted);font-weight:400}
+.pdesc{font-size:.8rem;color:var(--muted);margin:9px 0 16px;min-height:32px}
+.pfl{list-style:none;display:flex;flex-direction:column;gap:8px;margin-bottom:22px}
+.pfl li{display:flex;align-items:flex-start;gap:8px;font-size:.84rem;color:var(--muted);line-height:1.5}
+.pfl li .y{color:var(--green);flex-shrink:0}.pfl li .n{color:var(--red);opacity:.55;flex-shrink:0}
+
+/* MODALS */
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.72);backdrop-filter:blur(10px);z-index:200;display:none;align-items:center;justify-content:center;padding:14px}
+.ov.on{display:flex}
+.modal{background:var(--s1);border:1px solid var(--s3);border-radius:18px;padding:32px 28px;width:100%;max-width:420px;position:relative;animation:su .28s ease;max-height:92svh;overflow-y:auto}
+@keyframes su{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.mx{position:absolute;top:13px;right:13px;background:var(--s2);border:none;color:var(--muted);cursor:pointer;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-size:.95rem;transition:color .2s}
+.mx:hover{color:var(--text)}
+.modal h2{font-size:1.35rem;font-weight:700;margin-bottom:4px}
+.modal .sub{color:var(--muted);font-size:.86rem;margin-bottom:22px}
+.fg{margin-bottom:13px}
+.fg label{display:block;font-size:.78rem;font-weight:500;color:var(--muted);margin-bottom:5px}
+.fi{width:100%;background:var(--s2);border:1px solid var(--s3);border-radius:7px;padding:10px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.9rem;outline:none;transition:border-color .2s}
+.fi:focus{border-color:var(--gold)}
+.fi::placeholder{color:var(--muted)}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.fsw{text-align:center;margin-top:13px;font-size:.84rem;color:var(--muted)}
+.fsw a{color:var(--gold);font-weight:500;cursor:pointer}
+.alrt{padding:9px 13px;border-radius:7px;font-size:.84rem;margin-bottom:12px;display:none}
+.alrt.e{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);color:#fca5a5;display:block}
+.alrt.s{background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.25);color:#86efac;display:block}
+.spin{display:inline-block;width:13px;height:13px;border:2px solid rgba(0,0,0,.2);border-top-color:#0a0c10;border-radius:50%;animation:sp .6s linear infinite;vertical-align:middle}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+/* LEGAL */
+.lv{position:fixed;inset:0;background:rgba(0,0,0,.8);backdrop-filter:blur(12px);z-index:300;display:none;align-items:center;justify-content:center;padding:14px}
+.lv.on{display:flex}
+.lb-box{background:var(--s1);border:1px solid var(--s3);border-radius:18px;padding:32px 28px;width:100%;max-width:620px;max-height:88svh;overflow-y:auto;position:relative}
+.lb-box h2{font-size:1.3rem;margin-bottom:3px}
+.lb-box .dt{font-size:.76rem;color:var(--muted);margin-bottom:18px}
+.lb-box h3{font-size:.92rem;font-weight:600;margin:16px 0 5px;color:var(--gold)}
+.lb-box p,.lb-box li{font-size:.86rem;color:var(--muted);line-height:1.75}
+.lb-box ul{padding-left:16px;margin-bottom:8px}
+
+/* FOOTER */
+footer{background:var(--s1);border-top:1px solid var(--s3);padding:28px 5%;text-align:center;position:relative;z-index:1}
+.fl{display:flex;flex-wrap:wrap;gap:16px;justify-content:center;margin-bottom:12px}
+.fl a{font-size:.82rem;color:var(--muted);transition:color .2s;text-decoration:none}
+.fl a:hover{color:var(--gold)}
+.fc{font-size:.76rem;color:var(--muted)}
+.fc strong{color:var(--gold)}
+
+/* RESPONSIVE */
+@media(max-width:640px){
+  nav{padding:11px 4%}
+  .btn{padding:8px 14px;font-size:.84rem}
+  .frow{grid-template-columns:1fr}
+  .modal{padding:24px 18px}
+  .lb-box{padding:22px 16px}
+  .sec{padding:40px 4%}
+}
+@media(max-width:380px){.nav-r .btn-ghost{display:none}}
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="logo" href="/">
+    <div class="li">LB</div>
+    <div><div class="ln">LumiBooks</div><div class="lb">LumineerCo</div></div>
+  </a>
+  <div class="nav-r">
+    <a href="#pricing" class="btn btn-ghost" style="padding:7px 13px">Pricing</a>
+    <button class="btn btn-ghost" onclick="showModal('login')">Sign In</button>
+    <button class="btn btn-gold"  onclick="showModal('register')">Get Started →</button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="glow"></div>
+  <div>
+    <div class="badge"><span class="dot"></span> Free to start · No GST complexity</div>
+    <h1>Run Your Business<br><span>Without the Chaos</span></h1>
+    <p class="hsub">Track every rupee, generate clean invoices, and share bills on WhatsApp — built for Indian small businesses and freelancers.</p>
+    <div class="ctas">
+      <button class="btn btn-gold" style="padding:12px 26px;font-size:.95rem" onclick="showModal('register')">Start for Free →</button>
+      <a href="#features" class="btn btn-ghost" style="padding:12px 26px;font-size:.95rem">See Features</a>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="n">₹0</div><div class="l">To Start</div></div>
+      <div class="stat"><div class="n">100%</div><div class="l">Private Data</div></div>
+      <div class="stat"><div class="n">0</div><div class="l">GST Headaches</div></div>
+      <div class="stat"><div class="n">∞</div><div class="l">Bills (Premium)</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<div class="sec" id="features">
+  <div class="sec-lbl">Features</div>
+  <h2 class="sec-t">Everything Your Business Needs</h2>
+  <p class="sec-s">No bloat. No GST confusion. Just the tools that matter.</p>
+  <div class="g3">
+    <div class="card"><div class="ci">📊</div><h3>Live P&L Dashboard</h3><p>Profit & loss at a glance — charts, category breakdown, monthly trends.</p></div>
+    <div class="card"><div class="ci">🧾</div><h3>Professional Bills</h3><p>Itemized invoices with discount and tax. No GST complexity. Clean, print-ready.</p></div>
+    <div class="card"><div class="ci">💬</div><h3>WhatsApp in One Tap</h3><p>Share any bill on WhatsApp instantly — no API, no extra cost. Standard & Premium.</p></div>
+    <div class="card"><div class="ci">🔒</div><h3>Private Data</h3><p>Your own dedicated Google Sheet. Nobody else can ever see your data.</p></div>
+    <div class="card"><div class="ci">📤</div><h3>Export Formats</h3><p>Print free. DOC on Standard+. One-click PDF on Premium.</p></div>
+    <div class="card"><div class="ci">🔍</div><h3>Global Search</h3><p>Search across all transactions and bills instantly.</p></div>
+  </div>
+</div>
+
+<!-- PRICING -->
+<div class="plans-wrap" id="pricing">
+  <div class="plans-inner">
+    <div class="sec-lbl" style="text-align:center">Pricing</div>
+    <h2 class="sec-t" style="text-align:center">Simple, Honest Pricing</h2>
+    <p class="sec-s" style="text-align:center;margin:0 auto 40px">Pay via UPI — no auto-debit, no hidden charges.</p>
+    <div class="plans-grid">
+
+      <div class="plan">
+        <div class="pname">Free</div>
+        <div class="pprice"><sup>₹</sup>0<sub> forever</sub></div>
+        <div class="pdesc">Try LumiBooks with no commitment.</div>
+        <ul class="pfl">
+          <li><span class="y">✓</span> 20 bills/month</li>
+          <li><span class="y">✓</span> Unlimited transactions</li>
+          <li><span class="y">✓</span> P&L Dashboard</li>
+          <li><span class="y">✓</span> Print bills</li>
+          <li><span class="n">✗</span> WhatsApp sharing</li>
+          <li><span class="n">✗</span> PDF / DOC export</li>
+        </ul>
+        <button class="btn btn-ghost btn-full" onclick="showModal('register')">Start Free</button>
+      </div>
+
+      <div class="plan feat">
+        <div class="ptag">⭐ Best Value</div>
+        <div class="pname">Standard</div>
+        <div class="pprice"><sup>₹</sup>149<sub>/month</sub></div>
+        <div class="pdesc">For growing businesses that share and export.</div>
+        <ul class="pfl">
+          <li><span class="y">✓</span> 150 bills/month</li>
+          <li><span class="y">✓</span> Unlimited transactions</li>
+          <li><span class="y">✓</span> P&L Dashboard</li>
+          <li><span class="y">✓</span> Print bills</li>
+          <li><span class="y">✓</span> WhatsApp sharing</li>
+          <li><span class="y">✓</span> DOC (Word) export</li>
+          <li><span class="n">✗</span> PDF export</li>
+        </ul>
+        <button class="btn btn-gold btn-full" onclick="showModal('register')">Get Standard →</button>
+      </div>
+
+      <div class="plan">
+        <div class="pname">Premium</div>
+        <div class="pprice"><sup>₹</sup>299<sub>/month</sub></div>
+        <div class="pdesc">Full power — no limits at all.</div>
+        <ul class="pfl">
+          <li><span class="y">✓</span> <strong>Unlimited</strong> bills</li>
+          <li><span class="y">✓</span> Unlimited transactions</li>
+          <li><span class="y">✓</span> P&L Dashboard</li>
+          <li><span class="y">✓</span> Print bills</li>
+          <li><span class="y">✓</span> WhatsApp sharing</li>
+          <li><span class="y">✓</span> DOC (Word) export</li>
+          <li><span class="y">✓</span> <strong>PDF export</strong></li>
+        </ul>
+        <button class="btn btn-ghost btn-full" onclick="showModal('register')">Get Premium →</button>
+      </div>
+
+    </div>
+    <p style="text-align:center;font-size:.8rem;color:var(--muted);margin-top:20px">All paid plans use manual UPI — admin verifies within 24 hours.</p>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div style="display:flex;align-items:center;justify-content:center;gap:9px;margin-bottom:14px">
+    <div class="li">LB</div>
+    <div><div class="ln" style="font-family:'Syne',sans-serif;font-weight:700">LumiBooks</div><div class="lb">LumineerCo</div></div>
+  </div>
+  <div class="fl">
+    <a href="#features">Features</a>
+    <a href="#pricing">Pricing</a>
+    <a href="#" onclick="showLegal('privacy');return false">Privacy Policy</a>
+    <a href="#" onclick="showLegal('terms');return false">Terms of Service</a>
+    <a href="mailto:lumineerco@yahoo.com">Contact</a>
+  </div>
+  <div class="fc">© 2026 <strong>LumiBooks</strong> by <strong>LumineerCo</strong>. All rights reserved.</div>
+</footer>
+
+<!-- AUTH MODAL -->
+<div class="ov" id="authOv">
+  <div class="modal">
+    <button class="mx" onclick="closeModal()">✕</button>
+
+    <div id="loginF">
+      <h2>Welcome Back</h2>
+      <p class="sub">Sign in to your LumiBooks account</p>
+      <div class="alrt" id="lAlrt"></div>
+      <div class="fg"><label>Email Address</label><input class="fi" id="lEmail" type="email" placeholder="you@example.com" autocomplete="email"></div>
+      <div class="fg"><label>Password</label><input class="fi" id="lPass" type="password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"></div>
+      <button class="btn btn-gold btn-full" id="lBtn" onclick="doLogin()" style="padding:11px">Sign In →</button>
+      <div class="fsw">No account? <a onclick="showModal('register')">Create one free</a></div>
+    </div>
+
+    <div id="regF" style="display:none">
+      <h2>Create Account</h2>
+      <p class="sub">Free forever — no card needed</p>
+      <div class="alrt" id="rAlrt"></div>
+      <div class="frow">
+        <div class="fg"><label>Full Name *</label><input class="fi" id="rName" type="text" placeholder="Your name" autocomplete="name"></div>
+        <div class="fg"><label>Phone</label><input class="fi" id="rPhone" type="tel" placeholder="9876543210" autocomplete="tel"></div>
+      </div>
+      <div class="fg"><label>Email *</label><input class="fi" id="rEmail" type="email" placeholder="you@example.com" autocomplete="email"></div>
+      <div class="fg"><label>Password * (min 6 chars)</label><input class="fi" id="rPass" type="password" placeholder="••••••••" autocomplete="new-password" onkeydown="if(event.key==='Enter')doRegister()"></div>
+      <button class="btn btn-gold btn-full" id="rBtn" onclick="doRegister()" style="padding:11px">Create Free Account →</button>
+      <div class="fsw">Have an account? <a onclick="showModal('login')">Sign in</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- PRIVACY -->
+<div class="lv" id="privacyOv">
+  <div class="lb-box">
+    <button class="mx" onclick="closeLegal('privacy')">✕</button>
+    <h2>Privacy Policy</h2>
+    <p class="dt">Last updated: April 2026 · LumiBooks by LumineerCo</p>
+    <h3>1. Data We Collect</h3><p>We collect name, email, phone, and business information provided during registration. Financial data is stored in a private Google Sheet created exclusively for your account.</p>
+    <h3>2. How Your Data Is Stored</h3><p>Each user gets a dedicated Google Sheet on the LumiBooks service account. It is never shared with any other user. The master database stores only email, hashed password, plan status, and a reference to your sheet.</p>
+    <h3>3. Passwords</h3><p>Passwords are hashed using SHA-256 with a server-side salt. We never store or can retrieve plain-text passwords.</p>
+    <h3>4. Data Sharing</h3><p>We do not sell, share, or disclose your personal or business data to any third party.</p>
+    <h3>5. Sessions</h3><p>We use secure tokens stored in your browser's localStorage. No cookies are used for tracking.</p>
+    <h3>6. Third-Party Services</h3><p>LumiBooks uses Google Sheets API (Google Cloud) as its database backend.</p>
+    <h3>7. Data Deletion</h3><p>Contact <a href="mailto:lumineerco@yahoo.com" style="color:var(--gold)">lumineerco@yahoo.com</a> to request account deletion within 7 days.</p>
+    <div style="margin-top:20px"><button class="btn btn-ghost" onclick="closeLegal('privacy')">Close</button></div>
+  </div>
+</div>
+
+<!-- TERMS -->
+<div class="lv" id="termsOv">
+  <div class="lb-box">
+    <button class="mx" onclick="closeLegal('terms')">✕</button>
+    <h2>Terms of Service</h2>
+    <p class="dt">Last updated: April 2026 · LumiBooks by LumineerCo</p>
+    <h3>1. Acceptance</h3><p>By creating an account, you agree to these terms. If you disagree, do not use the service.</p>
+    <h3>2. Free Plan</h3><p>The Free plan allows up to 20 bills per month. No export or WhatsApp features.</p>
+    <h3>3. Paid Plans</h3><p>Standard (₹149/month) and Premium (₹299/month) are activated after manual UPI payment verification, typically within 24 hours. Payments are non-refundable once activated.</p>
+    <h3>4. Acceptable Use</h3>
+    <ul><li>Only lawful business purposes.</li><li>Do not attempt to access other users' data.</li><li>No automated bulk API requests.</li><li>You are responsible for accuracy of your own data.</li></ul>
+    <h3>5. Availability</h3><p>LumiBooks is provided "as is". We are not liable for business losses from downtime.</p>
+    <h3>6. Termination</h3><p>Accounts violating these terms may be suspended. You may delete your account anytime.</p>
+    <h3>7. Contact</h3><p><a href="mailto:lumineerco@yahoo.com" style="color:var(--gold)">lumineerco@yahoo.com</a></p>
+    <div style="margin-top:20px"><button class="btn btn-ghost" onclick="closeLegal('terms')">Close</button></div>
+  </div>
+</div>
+
+<script>
+// Redirect if already logged in
+if (LB.session.active()) location.href = "app.html";
+
+// Handle hash
+const h = location.hash;
+if (h === "#login")   showModal("login");
+if (h === "#register") showModal("register");
+if (h === "#privacy") showLegal("privacy");
+if (h === "#terms")   showLegal("terms");
+
+function showModal(t) {
+  document.getElementById("authOv").classList.add("on");
+  document.getElementById("loginF").style.display = t === "login"    ? "block" : "none";
+  document.getElementById("regF"  ).style.display = t === "register" ? "block" : "none";
+}
+function closeModal() { document.getElementById("authOv").classList.remove("on"); }
+function showLegal(t) { document.getElementById(t + "Ov").classList.add("on"); document.body.style.overflow = "hidden"; }
+function closeLegal(t){ document.getElementById(t + "Ov").classList.remove("on"); document.body.style.overflow = ""; }
+
+function alrt(id, msg, type) { const el = document.getElementById(id); el.textContent = msg; el.className = "alrt " + (type === "ok" ? "s" : "e"); }
+function setBusy(id, busy, label) { const b = document.getElementById(id); b.disabled = busy; b.innerHTML = busy ? '<span class="spin"></span> Please wait...' : label; }
+
+async function doLogin() {
+  const email = document.getElementById("lEmail").value.trim();
+  const pass  = document.getElementById("lPass").value;
+  if (!email || !pass) { alrt("lAlrt", "Email and password required.", "err"); return; }
+  alrt("lAlrt", "", ""); setBusy("lBtn", true, "Sign In →");
+  const d = await LB.auth.login(email, pass);
+  setBusy("lBtn", false, "Sign In →");
+  if (!d || !d.ok) { alrt("lAlrt", d?.msg || "Login failed.", "err"); return; }
+  LB.session.save({ ...d, email });
+  location.href = "app.html";
+}
+
+async function doRegister() {
+  const name  = document.getElementById("rName").value.trim();
+  const phone = document.getElementById("rPhone").value.trim();
+  const email = document.getElementById("rEmail").value.trim();
+  const pass  = document.getElementById("rPass").value;
+  if (!name || !email || !pass) { alrt("rAlrt", "Name, email & password are required.", "err"); return; }
+  setBusy("rBtn", true, "Create Free Account →");
+  const d = await LB.auth.register({ name, phone, email, password: pass });
+  setBusy("rBtn", false, "Create Free Account →");
+  if (!d || !d.ok) { alrt("rAlrt", d?.msg || "Registration failed.", "err"); return; }
+  alrt("rAlrt", d.msg + " Redirecting to login...", "ok");
+  setTimeout(() => showModal("login"), 1800);
+}
+</script>
+</body>
+</html>
