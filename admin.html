@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LumiBooks — Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:opsz,wght@9..40,400;9..40,500&display=swap" rel="stylesheet">
+<script src="js/api.js"></script>
+<link rel="stylesheet" href="cs/admin_style.css">
+</head>
+<body>
+<header class="tb">
+  <div class="logo"><div class="li">LB</div><div><div class="ln">LumiBooks Admin</div><div class="lb">🔐 Admin Panel</div></div></div>
+  <div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap"><span class="abg">⚠️ Admin Only</span><button class="btn btn-ghost" onclick="doLogout()">Sign Out</button></div>
+</header>
+<div class="ctn">
+  <!-- LOGIN -->
+  <div id="loginSec">
+    <h2 style="margin-bottom:16px;font-size:1.25rem">Admin Login</h2>
+    <div id="lA"></div>
+    <div style="max-width:330px">
+      <input class="fi" id="adE" type="email" placeholder="Admin email">
+      <input class="fi" id="adP" type="password" placeholder="Password" onkeydown="if(event.key==='Enter')adminLogin()">
+      <button class="btn btn-gold" style="width:100%;justify-content:center" onclick="adminLogin()">Sign In as Admin →</button>
+    </div>
+  </div>
+  <!-- PANEL -->
+  <div id="admPnl" style="display:none">
+    <div class="sg">
+      <div class="sc"><div class="sc-l">Total Users</div><div class="sc-v" id="sU">—</div></div>
+      <div class="sc"><div class="sc-l">Premium</div><div class="sc-v" id="sPr" style="color:var(--gold)">—</div></div>
+      <div class="sc"><div class="sc-l">Standard</div><div class="sc-v" id="sSt" style="color:var(--blue)">—</div></div>
+      <div class="sc"><div class="sc-l">Pending Payments</div><div class="sc-v" id="sPy" style="color:var(--red)">—</div></div>
+    </div>
+    <div class="tabs">
+      <button class="tab on" onclick="swTab('pay',this)">💳 Payments</button>
+      <button class="tab"    onclick="swTab('usr',this)">👥 Users</button>
+    </div>
+    <div class="pnl on" id="pnl-pay">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:11px;flex-wrap:wrap;gap:7px">
+        <h3 style="font-size:.93rem">Payment Approvals</h3>
+        <button class="btn btn-ghost btn-sm" onclick="loadPay()">🔄 Refresh</button>
+      </div>
+      <div id="pA"></div>
+      <div class="tw"><div class="ts">
+        <table><thead><tr><th>Tx ID</th><th>User ID</th><th>Date</th><th>Amount</th><th>UTR</th><th>Plan</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody id="payB"><tr><td colspan="8" style="text-align:center;color:var(--muted);padding:16px"><span class="spin"></span></td></tr></tbody></table>
+      </div></div>
+    </div>
+    <div class="pnl" id="pnl-usr">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:11px;flex-wrap:wrap;gap:7px">
+        <h3 style="font-size:.93rem">All Users</h3>
+        <button class="btn btn-ghost btn-sm" onclick="loadUsr()">🔄 Refresh</button>
+      </div>
+      <div id="uA"></div>
+      <div class="tw"><div class="ts">
+        <table><thead><tr><th>Name</th><th>Email</th><th>Plan</th><th>Registered</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody id="usrB"><tr><td colspan="6" style="text-align:center;color:var(--muted);padding:16px"><span class="spin"></span></td></tr></tbody></table>
+      </div></div>
+    </div>
+  </div>
+</div>
+<script>
+if(LB.session.active()){document.getElementById("loginSec").style.display="none";document.getElementById("admPnl").style.display="block";loadPay();loadUsr();}
+
+async function adminLogin(){
+  const email=document.getElementById("adE").value.trim(),pass=document.getElementById("adP").value;
+  const d=await LB.auth.login(email,pass);
+  if(!d||!d.ok){showA("lA",d?.msg||"Login failed.","e");return;}
+  LB.session.save({...d,email});
+  document.getElementById("loginSec").style.display="none";document.getElementById("admPnl").style.display="block";
+  loadPay();loadUsr();
+}
+
+async function loadPay(){
+  const d=await LB.admin.payments();
+  if(!d||!d.ok){showA("pA",d?.msg||"Error","e");return;}
+  document.getElementById("sPy").textContent=d.rows.filter(r=>r.status==="pending").length;
+  const tb=document.getElementById("payB");
+  if(!d.rows.length){tb.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:16px">No payments yet 🎉</td></tr>';return;}
+  tb.innerHTML=d.rows.map(r=>`<tr>
+    <td style="font-size:.74rem;color:var(--gold)">${r.txId}</td>
+    <td style="font-size:.74rem;color:var(--muted)">${r.userId}</td>
+    <td style="white-space:nowrap">${r.date}</td>
+    <td style="font-weight:600">₹${r.amount}</td>
+    <td style="font-family:monospace;font-size:.8rem">${r.utr}</td>
+    <td><span class="bg ${r.plan||"free"}">${r.plan||"—"}</span></td>
+    <td><span class="bg ${r.status}">${r.status}</span></td>
+    <td style="white-space:nowrap">
+      ${r.status==="pending"?`<button class="btn btn-green btn-sm" onclick="approve('${r.txId}')">✅ Approve</button> <button class="btn btn-danger btn-sm" onclick="reject('${r.txId}')">❌ Reject</button>`:"—"}
+    </td></tr>`).join("");
+}
+
+async function approve(txId){
+  if(!confirm("Approve and upgrade user?"))return;
+  const d=await LB.admin.approve(txId,"Approved by admin");
+  showA("pA",d?.msg||"Error",d?.ok?"s":"e");if(d?.ok)loadPay();
+}
+async function reject(txId){
+  const r=prompt("Reason (optional):")||"Rejected by admin";
+  const d=await LB.admin.reject(txId,r);
+  showA("pA",d?.msg||"Error",d?.ok?"s":"e");if(d?.ok)loadPay();
+}
+
+async function loadUsr(){
+  const d=await LB.admin.users();if(!d||!d.ok)return;
+  document.getElementById("sU").textContent=d.total;
+  document.getElementById("sPr").textContent=d.rows.filter(r=>r.plan==="premium").length;
+  document.getElementById("sSt").textContent=d.rows.filter(r=>r.plan==="standard").length;
+  const tb=document.getElementById("usrB");
+  if(!d.rows.length){tb.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:16px">No users yet.</td></tr>';return;}
+  tb.innerHTML=d.rows.map(r=>`<tr>
+    <td style="font-weight:500">${r.name}</td>
+    <td style="color:var(--muted)">${r.email}</td>
+    <td><span class="bg ${r.plan}">${r.plan}</span></td>
+    <td style="color:var(--muted);font-size:.78rem">${String(r.regDate||"").slice(0,10)}</td>
+    <td><span class="bg ${r.status}">${r.status}</span></td>
+    <td>${r.status==="active"?`<button class="btn btn-danger btn-sm" onclick="setSt('${r.userId}','suspended')">Suspend</button>`:`<button class="btn btn-green btn-sm" onclick="setSt('${r.userId}','active')">Activate</button>`}</td>
+  </tr>`).join("");
+}
+
+async function setSt(uid,status){
+  if(!confirm(`${status==="suspended"?"Suspend":"Reactivate"} this user?`))return;
+  const d=await LB.admin.setStatus(uid,status);
+  showA("uA",d?.msg||"Error",d?.ok?"s":"e");if(d?.ok)loadUsr();
+}
+
+function swTab(id,el){document.querySelectorAll(".tab").forEach(t=>t.classList.remove("on"));document.querySelectorAll(".pnl").forEach(p=>p.classList.remove("on"));el.classList.add("on");document.getElementById("pnl-"+id).classList.add("on");}
+function showA(id,m,t){const el=document.getElementById(id);if(!el)return;el.innerHTML=`<div class="alrt ${t}">${m}</div>`;setTimeout(()=>el.innerHTML="",5000);}
+async function doLogout(){await LB.auth.logout();LB.session.clear();location.reload();}
+</script>
+</body>
+</html>
